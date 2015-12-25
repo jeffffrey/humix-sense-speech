@@ -1,11 +1,19 @@
 {
   "name": "humix-sense-speech",
   "version": "0.1.0",
-  "private": true,
+  "description": "for text to speech and speech to text",
   "main": "TTS.js",
+  "license" : "Apache-2.0",
+  "repository"   : {
+      "type":"git",
+      "url":"https://github.com/project-humix/humix-sense-speech.git"
+  },
   "scripts": {
     "install": "make"
   },
+  "keywords": [
+      "humix", "tts", "stt", "cmu", "voice", "raspberrypi"
+      ],
   "dependencies": {
     "logule": "^2.0.1",
     "mqtt": "^1.1.3",
