@@ -19,5 +19,9 @@
     "mqtt": "^1.1.3",
     "nats": "^0.2.9",
     "soap": "^0.9.1"
+  },
+  "devDependencies": {
+    "nan": "^2.1.0",
+    "node-gyp": "^3.2.1"
   }
 }
