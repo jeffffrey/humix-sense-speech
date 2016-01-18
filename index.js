@@ -193,7 +193,9 @@ function text2Speech(msg) {
   var hash = crypto.createHash('md5').update(text).digest('hex');
   var filename = path.join(voice_path, 'text', hash + '.wav');
 
-  if (fs.existsSync(filename)) {
+  if ( config.options.speech === 'nao' ) {
+    sendAplay2HumixSpeech(text);
+  } else if (fs.existsSync(filename)) {
     log.debug('Wav file exist. Play cached file:', filename);
     sendAplay2HumixSpeech(filename);
   } else {
