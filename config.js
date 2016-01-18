@@ -36,7 +36,9 @@ module.exports = {
     //wav-proc: './voice/interlude/beep2.wav',
     //wav-bye: './voice/interlude/beep1.wav',
     //logfn: '/dev/null'
+    //speech: 'nao'
   },*/
+  naoSpeech : { pitchShift : 1.0 },//pitchShift, doubleVoice, doubleVoiceLevel, doubleVoiceTimeShift
   lang: 'en', // 'en', 'cht' or 'chs'
   'stt-engine': 'watson', // 'watson' or 'google',
   'tts-engine': 'watson', // 'watson' or 'itri' or 'iflytek'
