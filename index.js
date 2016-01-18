@@ -76,8 +76,7 @@ var hsm;
 //init NaoSpeech if needed
 if ( config.naoSpeech ) {
   try {
-    var NaoSpeech = require('./lib/NaoSpeech');
-    NaoSpeech.initNaoSpeech(config.naoSpeech);
+    require('./lib/HumixSpeech').initNaoSpeech(config.naoSpeech);
   } catch (e) {
     log.error('Unable to initialize NaoSpeech:', e);
   }
