@@ -36,6 +36,10 @@ var voice_path = path.join(__dirname, 'voice');
 var url = 'http://tts.itri.org.tw/TTSService/Soap_1_3.php?wsdl';
 var kGoogle = 0,
     kWatson = 1;
+
+var OpenCC = require('opencc');
+var opencc = new OpenCC('s2t.json');
+
 var engineIndex = {'google': kGoogle, 'watson': kWatson };
 
 var ttsWatson;
@@ -90,11 +94,11 @@ var commandRE = /---="(.*)"=---/;
  */
 function receiveCommand(cmdstr) {
     cmdstr = cmdstr.trim();
-    if ( config.stt.engine ) {
+    if ( config['stt-engine'] ) {
         console.error('command found:', cmdstr);
         
         if(hsm)
-            hsm.event("speech", cmdstr);
+            hsm.event("speech", opencc.convertSync(cmdstr));
 
     } else {
         console.log(" No stt engine configured. Skip");
@@ -138,7 +142,6 @@ function text2Speech(msg) {
     var hash = crypto.createHash('md5').update(text).digest('hex');
     var filename = path.join(voice_path, 'text', hash + '.wav');
          
-    console.log ('Check filename:', filename);
    
     if(fs.existsSync(filename)){
         
@@ -152,14 +155,15 @@ function text2Speech(msg) {
 
         console.log('tts-engine:', engine);            
         if ( ttsEngine === 'itri') {
-
-            ItriTTS(msg, function(err, id) {
+            console.log("username : "+config.tts.itri.username);
+            console.log("password : "+config.tts.itri.passwd);
+            ItriTTS(text, function(err, id) {
                 if (err) {
 
                     console.log('failed to download wav from ITRI. Error:' + err);
 
                 } else {
-                  
+                            
                     retry = 0;
                     setTimeout(ItriDownload, 1000, id, filename);
                 }
@@ -241,7 +245,8 @@ function ItriTTS(text, callback) {
 
 function ItriGetConvertStatus(id, filename, callback) {
     var args = {
-        accountIDhasOwnProperty: config.tts.itri.username,
+        //accountIDhasOwnProperty: config.tts.itri.username,
+        accountID: config.tts.itri.username,
         password: config.tts.itri.passwd,
         convertID: id
     };
@@ -270,8 +275,7 @@ function ItriGetConvertStatus(id, filename, callback) {
 
 function ItriDownload (id, filename) {
     retry++;
-    console.log(id, 'download' );
-    ItriGetConvertStatus(id, filename, function(err, filename) {
+    ItriGetConvertStatus(id, filename, function(err) {
         if (err) 
         { 
             console.log('err:', err); 
