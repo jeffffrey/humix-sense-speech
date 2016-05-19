@@ -15,8 +15,9 @@
 *******************************************************************************/
 /*eslint-env node */
 'use strict';
+
 var console = require('console');
-var config  = require('./lib/config');
+var config  = require('./config');
 var sys     = require('util');
 var nats    = require('nats').connect();
 var exec    = require('child_process').exec;
@@ -95,20 +96,26 @@ var commandRE = /---="(.*)"=---/;
 function receiveCommand(cmdstr) {
     cmdstr = cmdstr.trim();
     if ( config['stt-engine'] ) {
-        console.error('command found:', cmdstr);
+        console.log('command found:', cmdstr);
         
-        if(hsm)
-            hsm.event("speech", opencc.convertSync(cmdstr));
+        if(hsm){
 
+            if(config.lang == 'cht')
+                hsm.event("speech", opencc.convertSync(cmdstr));
+            else
+                hsm.event("speech", cmdstr)
+        }
     } else {
+        
         console.log(" No stt engine configured. Skip");
+        
     }
 }
 
 
 try {
     hs = new HumixSpeech(config.options);
-    var engine = config['stt-engine'] || 'google';
+    var engine = config['stt-engine'] || 'watson';
     hs.engine( config.stt[engine].username, config.stt[engine].passwd,
     		engineIndex[engine], require('./lib/' + engine).startSession);
     hs.start(receiveCommand);
@@ -171,7 +178,7 @@ function text2Speech(msg) {
 
         }else if ( ttsEngine === 'watson') {
 
-            WatsonTTS(msg, filename);             
+            WatsonTTS(text,filename);             
         }
       
     }
@@ -195,14 +202,18 @@ function sendAplay2HumixSpeech( file ) {
  * Watson TTS Processing
  */
 
-function WatsonTTS(msg,filename) {
-
-      ttsWatson.synthesize({ text : msg , 'accept': 'audio/wav'}, function() {
-     
-          console.log("wav_path:",en_wav_file)          
-          fs.writeFileSync( filename, new Buffer(arguments[1]));
-          sendAplay2HumixSpeech(filename);
-      });
+function WatsonTTS(text,filename) {
+      
+    ttsWatson.synthesize({ 'text' : text , 'accept': 'audio/wav'}, function(err) {
+        
+        if(err){
+            
+            console.err("error:" + err);
+            return;
+        }
+        fs.writeFileSync( filename, new Buffer(arguments[1]));
+        sendAplay2HumixSpeech(filename);
+    });
 }
 
 

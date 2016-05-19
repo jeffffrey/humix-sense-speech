@@ -36,13 +36,14 @@ module.exports = {
         'wav-proc'      : './voice/interlude/beep2.wav',
         'wav-bye'       : './voice/interlude/beep1.wav',
         'logfn'         : '/dev/null'},
-    'stt-engine' : 'watson', // 'google' or 'watson',
-    'tts-engine' : 'itri', //'watson' or 'itri'
+    "lang" : 'en',             // 'en', 'cht' or 'chs'
+    'stt-engine' : 'watson',   // 'watson' or 'google',
+    'tts-engine' : 'watson',     // 'watson' or 'itri'
     'stt' : {
       'watson' : { 'username' :'<your_username>',
           'passwd' : '<your_password>'},
-      'google' : { 'username' : '<your_username>',
-          'passwd': '<replace as your appid>'}
+      'google' : { 'username' : 'xxxxx',
+          'passwd': '<replace as your appid'}
             },
     'tts' :{
       'watson' : { 'username' :'<your_username>',
