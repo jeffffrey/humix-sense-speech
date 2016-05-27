@@ -10,7 +10,8 @@
   },
   "scripts": {
     "preinstall": "scripts/preinstall",
-    "install": "make"
+    "install": "make",
+    "start": "node ."
   },
   "keywords": [
     "humix",
