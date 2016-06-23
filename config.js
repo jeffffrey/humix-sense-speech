@@ -38,7 +38,7 @@ module.exports = {
         'logfn'         : '/dev/null'},
     "lang" : 'en',             // 'en', 'cht' or 'chs'
     'stt-engine' : 'watson',   // 'watson' or 'google',
-    'tts-engine' : 'watson',     // 'watson' or 'itri'
+    'tts-engine' : 'watson',     // 'watson' or 'itri' or 'iflytek'
     'stt' : {
       'watson' : { 'username' :'<your_username>',
           'passwd' : '<your_password>'},
@@ -48,6 +48,7 @@ module.exports = {
     'tts' :{
       'watson' : { 'username' :'<your_username>',
                    'passwd' : '<your_password>'},
+     'iflytek': {'appid' : '123456'},
       'itri' : { 'username' : '<your_username>',
                  'passwd': '<your_password>',
                  'speaker': 'Bruce',

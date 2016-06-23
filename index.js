@@ -46,7 +46,8 @@ var engineIndex = {'google': kGoogle, 'watson': kWatson };
 var ttsWatson;
 var retry = 0;
 
-
+//iflytec flag
+var TTS_busy = false;
 
 if (config['tts-engine'] === 'watson') {
     ttsWatson = watson.text_to_speech({
@@ -145,6 +146,19 @@ function text2Speech(msg) {
 
     //for safe
     text = text.trim();
+    
+	var person = 'xiaoyan'
+		if ( config['tts-engine'] === 'iflytek') {
+		    try {
+        		person = JSON.parse(msg).person;
+    		}	catch (e) {
+        		person='xiaoyan';
+    		}	
+            IflytekTTS(text, person);
+            return;         
+    }
+      
+    
 
     var hash = crypto.createHash('md5').update(text).digest('hex');
     var filename = path.join(voice_path, 'text', hash + '.wav');
@@ -216,6 +230,25 @@ function WatsonTTS(text,filename) {
     });
 }
 
+
+/* 
+ * Iflytek TTS Processing
+ */
+
+function IflytekTTS(text, person) {
+      
+    if(!TTS_busy){
+        TTS_busy = true;
+        var execFile = "./tts";
+        var spawn = require("child_process").spawn;
+        var free = spawn(execFile, [text, 'tts.wav', person]);
+        free.stdout.on("data", function(data){console.log("out" + data);});
+        free.stderr.on("data", function(data){console.log("err" + data);});
+        free.on("exit", function(code, signal){TTS_busy = false; console.log("exit" + code);});
+    }else{
+        console.log("TTS is Busy!");
+    }
+}
 
 
 /* 
@@ -342,4 +375,3 @@ process.on('uncaughtException', function(err) {
         //process.exit(0);
     }
 });
-
