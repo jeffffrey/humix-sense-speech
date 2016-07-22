@@ -2,4 +2,4 @@
 echo "prepare to install prerequisite packages..."
 sudo apt-get install bison libasound2-dev swig python-dev mplayer flac libsndfile1-dev libflac++-dev
 
-cp -rf ../libmsc.so /usr/lib/
+sudo cp -rf deps/libmsc.so /usr/lib/
