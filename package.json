@@ -22,15 +22,18 @@
     "talk"
   ],
   "dependencies": {
-    "logule": "^2.0.1",
+    "humix-logger": "^1.0.2",
     "nats": "^0.2.9",
+    "node-humix-sense": "^1.0.0",
+    "opencc": "^1.0.4",
     "soap": "^0.9.1",
-    "watson-developer-cloud": "^1.1.2",
-    "node-humix-sense": "^1.0.0"
+    "watson-developer-cloud": "^1.1.2"
   },
   "devDependencies": {
     "nan": "^2.1.0",
     "node-gyp": "^3.2.1"
   },
-  "engines" : { "node" : ">=4.2" }
+  "engines": {
+    "node": ">=4.2"
+  }
 }
