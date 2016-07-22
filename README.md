@@ -24,4 +24,4 @@ speech-to-text and text-to-speech enabling project for Humix
 Make sure **gnatsd** server is running and you are on the project's root folder. Then issue the following command:
 ```
     node .
-```h
+```
