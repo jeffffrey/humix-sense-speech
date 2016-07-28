@@ -23,8 +23,8 @@
   ],
   "dependencies": {
     "humix-logger": "^1.0.2",
-    "nats": "^0.2.9",
-    "node-humix-sense": "^1.0.0",
+    "nats": "^0.6.4",
+    "humix-sense": "^1.0.0",
     "opencc": "^1.0.4",
     "soap": "^0.9.1",
     "watson-developer-cloud": "^1.1.2"

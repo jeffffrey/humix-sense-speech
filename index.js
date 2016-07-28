@@ -28,7 +28,7 @@ var Buffer = require('buffer').Buffer;
 var path = require('path');
 var watson = require('watson-developer-cloud');
 //var Sound   = require('node-aplay'); 
-var HumixSense = require('node-humix-sense');
+var HumixSense = require('humix-sense');
 var log = require('humix-logger').createLogger('humix-dialog-module', {
   consoleLevel : 'debug'
 });
@@ -371,7 +371,7 @@ process.on('error', function() {
 
 process.on('uncaughtException', function(err) {
   if (err.toString().indexOf('connect ECONNREFUSED')) {
-    log.error('exception,', JSON.stringify(err));
+    //log.error('exception,', JSON.stringify(err));
     //cleanup();
     //process.exit(0);
   }

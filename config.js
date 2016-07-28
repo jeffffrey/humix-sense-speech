@@ -56,7 +56,7 @@ module.exports = {
       passwd: '<your_password>'
     },
     iflytek: {
-      appid: '123456'
+      appid: '<app_id>'
     },
     itri: {
       username: '<your_username>',
