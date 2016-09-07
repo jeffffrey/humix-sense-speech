@@ -12,6 +12,7 @@ $(HUMIXMODULE): $(OBJ_SPHINXBASE) $(OBJ_SPHINXAD) $(OBJ_POCKETSPHINX) src/HumixS
 	node-gyp build
 	
 $(OBJ_SPHINXBASE):
+    wget -P deps https://sourceforge.net/projects/cmusphinx/files/sphinxbase/$(SPHINXBASE_VER)/sphinxbase-$(SPHINXBASE_VER).tar.gz
 	tar -xf deps/sphinxbase-$(SPHINXBASE_VER).tar.gz -C deps
 	cd deps/sphinxbase-$(SPHINXBASE_VER); export CFLAGS=" -g -O2 -Wall -fPIC"; ./configure --enable-fixed
 	make -C deps/sphinxbase-$(SPHINXBASE_VER)/src/libsphinxbase
@@ -20,6 +21,7 @@ $(OBJ_SPHINXBASE):
 $(OBJ_SPHINXAD): $(OBJ_SPHINXBASE)
 
 $(OBJ_POCKETSPHINX): $(OBJ_SPHINXBASE)
+    wget -P deps https://sourceforge.net/projects/cmusphinx/files/pocketsphinx/$(POCKETSPHINX_VER)/pocketsphinx-$(POCKETSPHINX_VER).tar.gz
 	tar -xf deps/pocketsphinx-$(POCKETSPHINX_VER).tar.gz -C deps
 	cd deps/pocketsphinx-$(POCKETSPHINX_VER); export CFLAGS=" -g -O2 -Wall -fPIC"; ./configure
 	make -C deps/pocketsphinx-$(POCKETSPHINX_VER)/src/libpocketsphinx
