@@ -5,19 +5,29 @@
       "sources": [
         "./src/WavUtil.cpp",
         "./src/StreamTTS.cpp",
+        "./src/NaoSpeech.cpp",
         "./src/HumixSpeech.cpp"
       ],
       "include_dirs": [ "<!(node -e \"require('nan')\")",
         "./deps/sphinxbase-5prealpha/include",
-        "./deps/pocketsphinx-5prealpha/include"
+        "./deps/pocketsphinx-5prealpha/include",
+     	"/home/normankugn/ctc-linux64-atom-2.1.4.13/libnaoqi/include",
+        "/home/normankugn/data/ctc-linux64-atom-2.1.4.13/boost/include/boost-1_55/",
       ],
       "libraries": [ "-Wl,--whole-archive",
         "../deps/sphinxbase-5prealpha/src/libsphinxbase/.libs/libsphinxbase.a",
         "../deps/sphinxbase-5prealpha/src/libsphinxad/.libs/libsphinxad.a",
         "../deps/pocketsphinx-5prealpha/src/libpocketsphinx/.libs/libpocketsphinx.a",
         "-Wl,--no-whole-archive",
-        "-lasound", "-lpthread", "-lsndfile", "-lFLAC++"
-      ]
+        "-lasound", "-lpthread", "-lsndfile", "-lFLAC++",
+        "-L/home/normankugn/ctc-linux64-atom-2.1.4.13/libnaoqi/lib",
+        "-L/home/normankugn/ctc-linux64-atom-2.1.4.13/alsa/lib",
+        "-L/home/normankugn/ctc-linux64-atom-2.1.4.13/sndfile/lib",
+        "-L/home/normankugn/ctc-linux64-atom-2.1.4.13/flac/lib",
+        "-lalproxies",
+      ],
+      "cflags_cc!": [ "-fno-rtti", "-fno-exceptions" ],
+      "cflags!": [ "-fno-exceptions" ],
     },
     {
       "target_name": "action_after_build",

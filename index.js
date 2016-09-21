@@ -32,9 +32,10 @@ var HumixSense = require('humix-sense');
 var log = require('humix-logger').createLogger('humix-dialog-module', {
   consoleLevel : 'debug'
 });
-
-var HumixSpeech = require('./lib/HumixSpeech').HumixSpeech;
 var config = require('./config');
+if(config['stt-engine']!='none')
+var HumixSpeech = require('./lib/HumixSpeech').HumixSpeech;
+
 
 var voice_path = path.join(__dirname, 'voice');
 var url = 'http://tts.itri.org.tw/TTSService/Soap_1_3.php?wsdl';
@@ -122,28 +123,46 @@ try {
     //to generate lm and dict file based on your keyword-name
     lm: './lm/humix.lm',
     dict: './lm/humix.dic',
-    'keyword-name': 'HUMIX', //all capital characters
+    'keyword-name': 'hello', //all capital characters
     samprate: '16000',
     maxwpf: '5',
     topn: '2',
     maxhmmpf: '3000',
     pl_window: '7',
     ds: '2',
-    cmdproc: './util/processcmd.sh',
+    cmdproc: './util/processcmd.sh', 
     lang: 'zh-tw',
     'wav-proc': './voice/interlude/beep2.wav',
-    'wav-bye': './voice/interlude/beep1.wav',
+    'wav-bye': './voice/interlude/beep1.wav', //the place u put byebye.wav
     logfn: '/dev/null'
   };
   var options = config.options || {};
   for(var option in options) {
     defaultOpts[option] = options[option];
   }
-  hs = new HumixSpeech(defaultOpts);
-  var engine = config['stt-engine'] || 'watson';
-  hs.engine(config.stt[engine].username, config.stt[engine].passwd,
-      engineIndex[engine], require('./lib/' + engine).startSession);
-  hs.start(receiveCommand);
+  defaultOpts['tts-engine']= config['tts-engine'];
+
+  if (config['stt-engine'] != 'none') {
+    hs = new HumixSpeech(defaultOpts);
+    var engine = config['stt-engine'] || 'watson';
+    hs.engine(config.stt[engine].username, config.stt[engine].passwd,
+    engineIndex[engine], require('./lib/' + engine).startSession);
+    hs.start(receiveCommand);
+  } else if (config['tts-engine'] == 'nao') {
+    
+    hs = new HumixSpeech(defaultOpts);
+    var engine = config['stt-engine'] || 'watson';
+    hs.engine(config.stt[engine].username, config.stt[engine].passwd,
+    engineIndex[engine], require('./lib/' + engine).startSession);
+    hs.start(receiveCommand);
+    hs.stopRecord();
+
+  } else {
+
+    hs = require('node-aplay');
+  }
+
+
 } catch (error) {
   log.error(error);
 }
@@ -152,6 +171,12 @@ try {
  * Text To Speech Processing
  */
 function text2Speech(msg) {
+
+
+  if(config['tts-engine']=='none')
+  {
+    return ;
+  }
   log.debug('Received a message:', msg);
   var text
   var wav_file = '';
@@ -168,17 +193,6 @@ function text2Speech(msg) {
 
   //for safe
   text = text.trim();
-
-  var person = 'xiaoyan'
-  if (config['tts-engine'] === 'iflytek') {
-    try {
-      person = JSON.parse(msg).person;
-    } catch (e) {
-      person = 'xiaoyan';
-    }
-    IflytekTTS(text, person);
-    return;
-  }
 
   var hash = crypto.createHash('md5').update(text).digest('hex');
   var filename = path.join(voice_path, 'text', hash + '.wav');
@@ -203,7 +217,16 @@ function text2Speech(msg) {
       });
     } else if (ttsEngine === 'watson') {
       WatsonTTS(text, filename);
-    }
+    } else if (ttsEngine == 'iflytek') {
+      var person = 'xiaoyan'
+        try {
+          person = JSON.parse(msg).person;
+        } catch (e) {
+          person = 'xiaoyan';
+        }
+        IflytekTTS(text, person, filename);
+        return;
+  }
   }
 }
 
@@ -213,7 +236,12 @@ function text2Speech(msg) {
  */
 function sendAplay2HumixSpeech(file) {
   if (hs) {
+    if(config['stt-engine']!='none')
     hs.play(file);
+    else 
+    {
+      new hs(file).play();
+    }
   }
 }
 
@@ -237,12 +265,12 @@ function WatsonTTS(text, filename) {
 /* 
  * Iflytek TTS Processing
  */
-function IflytekTTS(text, person) {
+function IflytekTTS(text, person, filename) {
   if (!TTS_busy) {
     TTS_busy = true;
     var execFile = './tts';
     var spawn = require('child_process').spawn;
-    var free = spawn(execFile, [ text, 'tts.wav', person ]);
+    var free = spawn(execFile, [ text, filename, person ]);
     free.stdout.on('data', function(data) {
       log.debug('out', data);
     });
@@ -346,7 +374,7 @@ function ItriDownload(id, filename) {
 
 process.stdin.resume();
 function cleanup() {
-  if (hs) {
+  if (hs&&config['stt-engine']=='none') {
     hs.stop();
   }
 }
