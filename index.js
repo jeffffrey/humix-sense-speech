@@ -28,7 +28,7 @@ var Buffer = require('buffer').Buffer;
 var path = require('path');
 var watson = require('watson-developer-cloud');
 //var Sound   = require('node-aplay'); 
-var HumixSense = require('node-humix-sense');
+var HumixSense = require('humix-sense');
 var log = require('humix-logger').createLogger('humix-dialog-module', {
   consoleLevel : 'debug'
 });
@@ -145,6 +145,7 @@ try {
       engineIndex[engine], require('./lib/' + engine).startSession);
   hs.start(receiveCommand);
 } catch (error) {
+  console.log('catch this error');
   log.error(error);
 }
 
@@ -221,6 +222,7 @@ function sendAplay2HumixSpeech(file) {
  * Watson TTS Processing
  */
 function WatsonTTS(text, filename) {
+  console.log('enter the TTS and the text is : ' + text);
   ttsWatson.synthesize({
     text : text,
     accept : 'audio/wav'
@@ -351,8 +353,11 @@ function cleanup() {
   }
 }
 process.on('SIGINT', function() {
-  cleanup();
-  process.exit(0);
+console.log('prcess interupt');  
+//cleanup();
+//process.exit(1);
+process.abort()
+//  process.exit(0);
 });
 process.on('SIGHUP', function() {
   cleanup();
@@ -371,7 +376,7 @@ process.on('error', function() {
 
 process.on('uncaughtException', function(err) {
   if (err.toString().indexOf('connect ECONNREFUSED')) {
-    log.error('exception,', JSON.stringify(err));
+    //log.error('exception,', JSON.stringify(err));
     //cleanup();
     //process.exit(0);
   }

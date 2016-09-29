@@ -23,15 +23,21 @@
   ],
   "dependencies": {
     "humix-logger": "^1.0.2",
-    "nats": "^0.2.9",
-    "node-humix-sense": "^1.0.0",
+    "nats": "^0.6.4",
+    "humix-sense": "^1.0.0",
     "opencc": "^1.0.4",
     "soap": "^0.9.1",
-    "watson-developer-cloud": "^1.1.2"
+    "watson-developer-cloud": "^1.1.2",
+    "google-auto-auth": "^0.2.4",
+    "google-proto-files": "^0.3.0",
+    "googleapis": "^12.0.0",
+    "grpc": "^0.15.0",
+    "async": "^1.5.2"
   },
   "devDependencies": {
     "nan": "^2.1.0",
-    "node-gyp": "^3.2.1"
+    "node-gyp": "^3.2.1",
+    "mocha": "^2.5.3"
   },
   "engines": {
     "node": ">=4.2"
