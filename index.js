@@ -98,6 +98,7 @@ var commandRE = /---="(.*)"=---/;
  *         '----="command string"=---'
  */
 function receiveCommand(cmdstr) {
+  sendAplay2HumixSpeech('voice/interlude/beep3.wav');
   cmdstr = cmdstr.trim();
   if (config['stt-engine']) {
     log.debug('command found:', cmdstr);
@@ -131,7 +132,7 @@ try {
     ds: '2',
     cmdproc: './util/processcmd.sh',
     lang: 'zh-tw',
-    'wav-proc': './voice/interlude/beep2.wav',
+    'wav-proc': './voice/interlude/beep3.wav',
     'wav-bye': './voice/interlude/beep1.wav',
     logfn: '/dev/null'
   };

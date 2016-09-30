@@ -262,9 +262,7 @@ HumixSpeech::Stop(const v8::FunctionCallbackInfo<v8::Value>& info) {
 info.GetIsolate()->ThrowException(v8::Exception::ReferenceError(
                 Nan::New("close the process").ToLocalChecked()));
         return;
-//mCB.Reset();
-  //  mState = kStop;
-   // uv_thread_join(&mThread);
+
 }
 
 /*static*/
@@ -304,8 +302,7 @@ void HumixSpeech::sSetupEngine(const v8::FunctionCallbackInfo<v8::Value>& info) 
     if ( info.Length() != 4 || !info[0]->IsString() ||
             !info[1]->IsString() || !info[2]->IsNumber() ||
             !info[3]->IsFunction()) {
-       // info.GetIsolate()->ThrowException(v8::Exception::SyntaxError(
-               // Nan::New("Usage: enableWatson(username, passwd, function)").ToLocalChecked()));
+            printf("worn params number or type may cause stt engine works unproperly");
         
     }
     v8::Local<v8::Context> ctx = info.GetIsolate()->GetCurrentContext();
@@ -475,14 +472,6 @@ void HumixSpeech::sLoop(void* arg) {
                     ps_end_utt(ps);
                     printf("StT processing\n");
                     char msg[1024];
-		    printf("stop rec\n");
-                    ad_stop_rec(ad);
-                    {
-			printf("proc wav play\n");
-                        WavPlayer player(_this->mWavProc);
-                        player.Play();
-			sleep_msec(2000);
-                    }
                     if ( !_this->mStreamTTS ) {
                         int result = _this->ProcessCommand(msg, 1024);
                         if (result == 0) {
@@ -500,8 +489,6 @@ void HumixSpeech::sLoop(void* arg) {
                     }
                     //once we got command, reset humix-loop
                     humixCount = 0;
-                    ad_start_rec(ad);
-		    printf("start rec\n");
                     _this->mState = kWaitCommand;
                     printf("Waiting for a command...\n");
                     if (ps_start_utt(ps) < 0)
