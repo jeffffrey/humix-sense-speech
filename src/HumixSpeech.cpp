@@ -258,9 +258,11 @@ void HumixSpeech::sStop(const v8::FunctionCallbackInfo<v8::Value>& info) {
 
 void
 HumixSpeech::Stop(const v8::FunctionCallbackInfo<v8::Value>& info) {
-    mCB.Reset();
-    mState = kStop;
-    uv_thread_join(&mThread);
+    
+info.GetIsolate()->ThrowException(v8::Exception::ReferenceError(
+                Nan::New("close the process").ToLocalChecked()));
+        return;
+
 }
 
 /*static*/
@@ -300,9 +302,8 @@ void HumixSpeech::sSetupEngine(const v8::FunctionCallbackInfo<v8::Value>& info) 
     if ( info.Length() != 4 || !info[0]->IsString() ||
             !info[1]->IsString() || !info[2]->IsNumber() ||
             !info[3]->IsFunction()) {
-        info.GetIsolate()->ThrowException(v8::Exception::SyntaxError(
-                Nan::New("Usage: enableWatson(username, passwd, function)").ToLocalChecked()));
-        return;
+            printf("worn params number or type may cause stt engine works unproperly");
+        
     }
     v8::Local<v8::Context> ctx = info.GetIsolate()->GetCurrentContext();
     v8::String::Utf8Value username(info[0]);
@@ -417,10 +418,9 @@ void HumixSpeech::sLoop(void* arg) {
                     if ( _this->mStreamTTS ) {
                         _this->mStreamTTS->ReConnectIfNeeded();
                         _this->mStreamTTS->SendVoiceWav((char*) adbuf, (uint32_t) (k * 2));
-                    } else {
-                        wavWriter = new WavWriter("/dev/shm/test.wav", 1, samprate);
+                       wavWriter = new WavWriter("/dev/shm/test.wav", 1, samprate);
                         wavWriter->WriteHeader();
-                        wavWriter->WriteData((char*) adbuf, (size_t) (k * 2));
+                        wavWriter->WriteData((char*) adbuf, (size_t) (k * 2)); 
                     }
                 } else {
                     //increase waiting count;
@@ -457,14 +457,13 @@ void HumixSpeech::sLoop(void* arg) {
                     //keep receiving command
                     if ( _this->mStreamTTS ) {
                         _this->mStreamTTS->SendVoiceWav((char*) adbuf, (uint32_t) (k * 2));
-                    } else {
                         wavWriter->WriteData((char*) adbuf, (size_t) (k * 2));
                     }
                 } else {
+			printf("Hear something");
                     if ( _this->mStreamTTS ) {
                         _this->mStreamTTS->SendVoiceWav((char*) adbuf, (uint32_t) (k * 2));
                         _this->mStreamTTS->SendSilentWav();
-                    } else {
                         wavWriter->WriteData((char*) adbuf, (size_t) (k * 2));
                         delete wavWriter;
                         wavWriter = NULL;
@@ -473,11 +472,6 @@ void HumixSpeech::sLoop(void* arg) {
                     ps_end_utt(ps);
                     printf("StT processing\n");
                     char msg[1024];
-                    ad_stop_rec(ad);
-                    {
-                        WavPlayer player(_this->mWavProc);
-                        player.Play();
-                    }
                     if ( !_this->mStreamTTS ) {
                         int result = _this->ProcessCommand(msg, 1024);
                         if (result == 0) {
@@ -490,12 +484,11 @@ void HumixSpeech::sLoop(void* arg) {
                                     HumixSpeech::sReceiveCmd);
                             uv_async_send(async);
                         } else {
-                            printf("No command found!");
+                            printf("No command found!\n");
                         }
                     }
                     //once we got command, reset humix-loop
                     humixCount = 0;
-                    ad_start_rec(ad);
                     _this->mState = kWaitCommand;
                     printf("Waiting for a command...\n");
                     if (ps_start_utt(ps) < 0)
