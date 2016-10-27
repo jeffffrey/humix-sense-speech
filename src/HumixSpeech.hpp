@@ -29,12 +29,21 @@ public:
     HumixSpeech(const v8::FunctionCallbackInfo<v8::Value>& args);
     ~HumixSpeech();
 
+    enum Speech {
+        kAlsa,
+        kNao
+    };
+
     typedef enum {
         kReady,
         kKeyword,
         kWaitCommand,
         kCommand,
-        kStop
+        kStop,
+        kStopRecord,
+        kStartRecord,
+        kStoppedRecord
+
     } State;
 
     static v8::Local<v8::FunctionTemplate> sFunctionTemplate(
@@ -45,11 +54,15 @@ private:
     static void sPlay(const v8::FunctionCallbackInfo<v8::Value>& info);
     static void sStop(const v8::FunctionCallbackInfo<v8::Value>& info);
     static void sSetupEngine(const v8::FunctionCallbackInfo<v8::Value>& info);
-
+    static void sStopRecord(const v8::FunctionCallbackInfo<v8::Value>& info);
+    static void sStartRecord(const v8::FunctionCallbackInfo<v8::Value>& info);
+    void Say(const char* msg);
+    void SayYes();
     void Start(const v8::FunctionCallbackInfo<v8::Value>& info);
     void Stop(const v8::FunctionCallbackInfo<v8::Value>& info);
     void Play(const v8::FunctionCallbackInfo<v8::Value>& info);
-
+    void stopRecord(const v8::FunctionCallbackInfo<v8::Value>& info);
+    void startRecord(const v8::FunctionCallbackInfo<v8::Value>& info);
     static void sLoop(void* arg);
     int ProcessCommand(char* msg, int len);
 
@@ -74,6 +87,7 @@ private:
     std::queue<std::string> mAplayFiles;
     std::queue<std::string> mCommands;
     StreamTTS* mStreamTTS;
+    Speech mSpeech;
 };
 
 

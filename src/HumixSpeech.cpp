@@ -1,4 +1,4 @@
-/*******************************************************************************
+/******************************************************************************
 * Copyright (c) 2015,2016 IBM Corp.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
 
 #include "StreamTTS.hpp"
 #include "WavUtil.hpp"
-
+#include "NaoSpeech.hpp"
 /* Sleep for specified msec */
 static void sleep_msec(int32 ms) {
     /* ------------------- Unix ------------------ */
@@ -103,16 +103,23 @@ static char* sGetObjectPropertyAsString(
 HumixSpeech::HumixSpeech(const v8::FunctionCallbackInfo<v8::Value>& args)
         : mThread(0) {
     v8::Local<v8::Object> config = args[0]->ToObject();
+    v8::Local<v8::Integer> ttsEngine  = args[1]->ToInteger();
     v8::Local<v8::Context> ctx = args.GetIsolate()->GetCurrentContext();
     mState = kReady;
-
     mCMDProc = sGetObjectPropertyAsString(ctx, config, "cmdproc", "./util/processcmd.sh");
     mWavSay =  sGetObjectPropertyAsString(ctx, config, "wav-say", "./voice/interlude/pleasesay1.wav");
     mWavProc =  sGetObjectPropertyAsString(ctx, config, "wav-proc", "./voice/interlude/process1.wav");
     mWavBye =  sGetObjectPropertyAsString(ctx, config, "wav-bye", "./voice/interlude/bye.wav");
     mLang =  sGetObjectPropertyAsString(ctx, config, "lang", "zh-tw");
     mSampleRate =  sGetObjectPropertyAsString(ctx, config, "samprate", "16000");
-
+    int Engine=ttsEngine->Value();
+    printf("Engine is   %d \n ", Engine);
+    if ( Engine == 1 ) {
+        mSpeech = kNao;
+    } else  {
+        mSpeech = kAlsa;
+    }
+    printf(" mSpeech is %d \n ",mSpeech);
     char const *cfg;
     v8::Local<v8::Array> props = config->GetPropertyNames();
     int propsNum = props->Length();
@@ -194,9 +201,9 @@ HumixSpeech::~HumixSpeech() {
 /*static*/
 void HumixSpeech::sV8New(const v8::FunctionCallbackInfo<v8::Value>& info) {
     v8::Isolate* isolate = info.GetIsolate();
-    if ( info.Length() != 1 ) {
+    if ( info.Length() != 2 ) {
         info.GetIsolate()->ThrowException(
-                v8::Exception::SyntaxError(Nan::New("one argument").ToLocalChecked()));
+                v8::Exception::SyntaxError(Nan::New("two argument").ToLocalChecked()));
         return info.GetReturnValue().Set(v8::Undefined(isolate));
     }
 
@@ -213,6 +220,8 @@ void HumixSpeech::sV8New(const v8::FunctionCallbackInfo<v8::Value>& info) {
 }
 
 /*static*/
+
+
 void HumixSpeech::sStart(const v8::FunctionCallbackInfo<v8::Value>& info) {
     HumixSpeech* hs = Unwrap<HumixSpeech>(info.Holder());
     if ( hs == nullptr ) {
@@ -240,6 +249,27 @@ HumixSpeech::Start(const v8::FunctionCallbackInfo<v8::Value>& info) {
 }
 
 /*static*/
+void
+HumixSpeech::SayYes() {
+    if ( mSpeech == kAlsa ) {
+        WavPlayer player(mWavSay);
+        player.Play();
+    } else if ( mSpeech == kNao) {
+        static char yes[] = "\xe6\x98\xaf";
+        NaoSpeech::sSay(yes);
+    }
+}
+void
+HumixSpeech::Say(const char* msg) {
+    if ( mSpeech == kAlsa ) {
+        printf(" speech : %d, msg : %s\n", mSpeech, msg);
+        WavPlayer player(msg);
+        player.Play();
+    } else if ( mSpeech == kNao) {
+	printf("recive the test and Nao say %s\n",msg);
+        NaoSpeech::sSay(msg);
+    }
+}
 void HumixSpeech::sStop(const v8::FunctionCallbackInfo<v8::Value>& info) {
     HumixSpeech* hs = Unwrap<HumixSpeech>(info.Holder());
     if ( hs == nullptr ) {
@@ -262,7 +292,50 @@ HumixSpeech::Stop(const v8::FunctionCallbackInfo<v8::Value>& info) {
     mState = kStop;
     uv_thread_join(&mThread);
 }
+void HumixSpeech::sStopRecord(const v8::FunctionCallbackInfo<v8::Value>& info) {
+    HumixSpeech* hs = Unwrap<HumixSpeech>(info.Holder());
+    if ( hs == nullptr ) {
+        info.GetIsolate()->ThrowException(v8::Exception::ReferenceError(
+                Nan::New("Not a HumixSpeech object").ToLocalChecked()));
+        return;
+    }
 
+    if ( info.Length() != 0 ) {
+        info.GetIsolate()->ThrowException(v8::Exception::SyntaxError(
+                Nan::New("Usage: stop()").ToLocalChecked()));
+        return;
+    }
+    hs->stopRecord(info);
+}
+void
+HumixSpeech::stopRecord(const v8::FunctionCallbackInfo<v8::Value>& info) {
+
+
+    mState = kStopRecord;
+
+}
+
+void HumixSpeech::sStartRecord(const v8::FunctionCallbackInfo<v8::Value>& info) {
+    HumixSpeech* hs = Unwrap<HumixSpeech>(info.Holder());
+    if ( hs == nullptr ) {
+        info.GetIsolate()->ThrowException(v8::Exception::ReferenceError(
+                Nan::New("Not a HumixSpeech object").ToLocalChecked()));
+        return;
+    }
+
+    if ( info.Length() != 0 ) {
+        info.GetIsolate()->ThrowException(v8::Exception::SyntaxError(
+                Nan::New("Usage: stop()").ToLocalChecked()));
+        return;
+    }
+    hs->startRecord(info);
+}
+void HumixSpeech::startRecord(const v8::FunctionCallbackInfo<v8::Value>& info) {
+
+
+    mState = kStartRecord;
+
+}
 /*static*/
 void HumixSpeech::sPlay(const v8::FunctionCallbackInfo<v8::Value>& info) {
     HumixSpeech* hs = Unwrap<HumixSpeech>(info.Holder());
@@ -284,6 +357,8 @@ void
 HumixSpeech::Play(const v8::FunctionCallbackInfo<v8::Value>& info) {
     v8::String::Utf8Value filename(info[0]);
     uv_mutex_lock(&mAplayMutex);
+
+    printf("push file : %s\n", *filename);
     mAplayFiles.push(*filename);
     uv_mutex_unlock(&mAplayMutex);
 }
@@ -351,30 +426,38 @@ void HumixSpeech::sLoop(void* arg) {
 
     for (; _this->mState != kStop ;) {
         //read data from rec, we need to check if there is any aplay request from node first
+	if(_this->mState == kStartRecord){
+		ad_start_rec(ad);
+	}
         if (_this->mState != kCommand) {
             uv_mutex_lock(&(_this->mAplayMutex));
             if (!_this->mAplayFiles.empty()) {
+                printf(" queue is not empty \n");
                 ad_stop_rec(ad);
                 std::string file = _this->mAplayFiles.front();
                 _this->mAplayFiles.pop();
                 printf("play:%s\n", file.c_str());
                 {
-                    WavPlayer player(file.c_str());
-                    player.Play();
+                    //WavPlayer player(file.c_str());
+                    _this->Say(file.c_str());
                 }
-                ad_start_rec(ad);
+                if(_this->mState != kStoppedRecord)
+                    ad_start_rec(ad);
             }
             uv_mutex_unlock(&(_this->mAplayMutex));
         }
-        if ((k = ad_read(ad, adbuf, adbuflen)) < 0)
-            E_FATAL("Failed to read audio\n");
 
-        //start to process the data we got from rec
-        ps_process_raw(ps, adbuf, k, FALSE, FALSE);
-        in_speech = ps_get_in_speech(ps);
+        if( _this->mState != kStoppedRecord) {
+          if ((k = ad_read(ad, adbuf, adbuflen)) < 0)
+              E_FATAL("Failed to read audio\n");
 
+          //start to process the data we got from rec
+          ps_process_raw(ps, adbuf, k, FALSE, FALSE);
+          in_speech = ps_get_in_speech(ps);
+        }
         switch (_this->mState) {
             case kReady:
+
                 humixCount = 0;
                 if (in_speech) {
                     _this->mState = kKeyword;
@@ -383,11 +466,14 @@ void HumixSpeech::sLoop(void* arg) {
                 break;
             case kKeyword:
                 if (in_speech) {
-                    //keep receiving keyword
+        	printf(".");
+		//keep receiving keyword
                 } else {
                     //keyword done
+     			printf("\nstart compare with keyword\n");
                     ps_end_utt(ps);
                     hyp = ps_get_hyp(ps, NULL);
+			printf("we got the word [%s]\n and compare with keyword [%s]\n",hyp,keywordName);
                     if (hyp != NULL && strcmp(keywordName, hyp) == 0) {
                         _this->mState = kWaitCommand;
                         if (_this->mStreamTTS ) {
@@ -396,8 +482,7 @@ void HumixSpeech::sLoop(void* arg) {
                         printf("keyword %s found\n", keywordName);
                         ad_stop_rec(ad);
                         {
-                            WavPlayer player(_this->mWavSay);
-                            player.Play();
+                            _this->SayYes();
                         }
                         ad_start_rec(ad);
                         printf("Waiting for a command...");
@@ -504,6 +589,18 @@ void HumixSpeech::sLoop(void* arg) {
                 break;
             case kStop:
                 break;
+            case kStopRecord:  // nothing to do for this state
+                ad_stop_rec(ad);
+                _this->mState = kStoppedRecord;
+                break;
+            case kStoppedRecord:
+                break;
+            case kStartRecord:
+               // ad_start_rec(ad);
+                _this->mState = kWaitCommand;
+                break;
+            default :
+                break;
         }
 
         sleep_msec(20);
@@ -551,6 +648,10 @@ v8::Local<v8::FunctionTemplate> HumixSpeech::sFunctionTemplate(
     NODE_SET_PROTOTYPE_METHOD(tmpl, "stop", sStop);
     NODE_SET_PROTOTYPE_METHOD(tmpl, "play", sPlay);
     NODE_SET_PROTOTYPE_METHOD(tmpl, "engine", sSetupEngine);
+    NODE_SET_PROTOTYPE_METHOD(tmpl, "stopRecord", sStopRecord);
+    NODE_SET_PROTOTYPE_METHOD(tmpl, "startRecord", sStartRecord);
+
+
 
     return scope.Escape(tmpl);
 }
@@ -603,6 +704,8 @@ void InitModule(v8::Local<v8::Object> target) {
 
     target->Set(ctx, Nan::New("HumixSpeech").ToLocalChecked(),
             ft->GetFunction(ctx).ToLocalChecked());
+    target->Set(ctx, Nan::New("initNaoSpeech").ToLocalChecked(),
+            v8::Function::New(ctx, NaoSpeech::sInitNaoSpeech, v8::Local<v8::Value>(), 0).ToLocalChecked());
 }
 
 NODE_MODULE(HumixSpeech, InitModule);
